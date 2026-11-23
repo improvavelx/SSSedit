@@ -1,0 +1,18 @@
+{
+  "name": "Save Manager",
+  "short_name": "R.O.W.E.",
+  "description": "Gerencie Pokémon, itens, EVs e golpes do save de Pokémon R.O.W.E.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%2318181b' stroke='%2310b981' stroke-width='4'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%2310b981'/%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
