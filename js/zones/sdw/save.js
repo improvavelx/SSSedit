@@ -1,3 +1,5 @@
+import { levelFromExp, expForLevel } from "../../rules.js";
+
 /**
  * Zona Super Dark Worship (FireRed base).
  * BoxPokemon 80 B / PartyPokemon 100 B, substructs em ordem fixa GAEM,
@@ -283,9 +285,10 @@ function readBox(raw) {
   const hasSpecies = (flags & 0x02) !== 0;
   const speciesId = u16(raw, 0x20);
   const pid = u32(raw, 0);
-  // Vazio / residual: exige flag hasSpecies ou (species e PID não nulos)
+  // Slot vazio / residual
+  if (!hasSpecies) return null;
   if (speciesId === 0 || speciesId === 0xffff) return null;
-  if (!hasSpecies && pid === 0) return null;
+  if (speciesId > 2000) return null;
 
   const otId = u32(raw, 4);
   const nature = pid % 25;
@@ -348,6 +351,7 @@ function readBox(raw) {
     style: 0,
     isEventMon: false,
     seasonCaught: 0,
+    level: levelFromExp(speciesId, exp),
   };
 }
 
@@ -355,9 +359,11 @@ function emptyBox(raw) {
   if (!raw || raw.length < BOX_BYTES) return true;
   const speciesId = u16(raw, 0x20);
   const hasSpecies = (raw[0x13] & 0x02) !== 0;
-  const pid = u32(raw, 0);
+  // Gen3/FR: hasSpecies é a flag oficial de slot ocupado (evita lixo residual)
+  if (!hasSpecies) return true;
   if (speciesId === 0 || speciesId === 0xffff) return true;
-  if (!hasSpecies && pid === 0) return true;
+  // IDs absurdos = dados corrompidos / residual
+  if (speciesId > 2000) return true;
   return false;
 }
 
@@ -592,6 +598,10 @@ function patchBox(raw, edit) {
     raw[0x13] = (raw[0x13] | 0x02) & 0xff; // hasSpecies
   }
   if (edit.itemId != null) putU16(raw, 0x22, edit.itemId & 0xffff);
+  if (edit.level != null && edit.exp == null) {
+    const sid = edit.speciesId != null ? edit.speciesId : u16(raw, 0x20);
+    putU32(raw, 0x24, expForLevel(sid, edit.level) >>> 0);
+  }
   if (edit.exp != null) putU32(raw, 0x24, edit.exp >>> 0);
   if (edit.friendship != null) raw[0x29] = edit.friendship & 0xff;
   if (Array.isArray(edit.moves) && edit.moves.length > 0) {
