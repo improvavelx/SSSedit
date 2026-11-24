@@ -25,7 +25,10 @@ function rebuildMaps() {
 
 export function getItemRows() { return itemRows; }
 export function getMoveRows() { return moveRows; }
-export function getSpeciesRows() { return speciesRows; }
+export function getSpeciesRows(includeBattleOnly = false) {
+  if (includeBattleOnly) return speciesRows;
+  return speciesRows.filter((r) => !r.battleOnly);
+}
 
 export const NATURES = [
   "Hardy",

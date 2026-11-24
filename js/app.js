@@ -432,10 +432,29 @@ function renderPicker(container, rows, selectedId, onPick) {
 
 function filterRows(rows, q, extraZero) {
   const list = extraZero ? [{ id: 0, n: extraZero }, ...rows] : [...rows];
-  const query = (q || "").trim().toLowerCase();
+  let query = (q || "").trim().toLowerCase();
   if (!query) return list.slice(0, 50);
-  return list
-    .filter((r) => r.n.toLowerCase().includes(query) || String(r.id) === query)
+  const aliases = {
+    alolan: "alola",
+    galarian: "galar",
+    hisuian: "hisui",
+    regional: "alola",
+  };
+  for (const [from, to] of Object.entries(aliases)) {
+    if (query === from || query.includes(from)) query = query.replace(from, to);
+  }
+  // busca "mega"/"gmax" inclui formas só de batalha
+  let pool = list;
+  if (query.includes("mega") || query.includes("gmax") || query.includes("primal")) {
+    pool = getSpeciesRows(true).map((r) => ({ id: r.id, n: r.n, slug: r.slug }));
+    if (extraZero) pool = [{ id: 0, n: extraZero }, ...pool];
+  }
+  return pool
+    .filter((r) => {
+      const name = (r.n || "").toLowerCase();
+      const slug = (r.slug || "").toLowerCase();
+      return name.includes(query) || slug.includes(query) || String(r.id) === query;
+    })
     .slice(0, 50);
 }
 
@@ -783,7 +802,8 @@ function renderEditor() {
     </div>
 
     <div class="field">
-      <label>Espécie · atual: ${escapeHtml(speciesName(edit.speciesId))}</label>
+      <label>Espécie · ${escapeHtml(speciesName(edit.speciesId))}</label>
+      <p class="hint">Formas regionais (Alola/Galar/Hisui) são espécies permanentes. Mega/Gmax/Primal são só de batalha — busque “mega” para listar.</p>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
         <input type="number" id="speciesIdIn" min="1" max="65535" value="${edit.speciesId}" style="width:110px;padding:8px" title="ID interno" />
         <span style="font-size:12px;color:var(--muted)">ID (hacks Gen 9: digite o número)</span>
